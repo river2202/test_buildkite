@@ -31,7 +31,7 @@ steps:
   - label: ":rocket: Deploy to staging"
     key: stage-deploy
     command: bash delay.sh && echo "Deployed to staging"
-    depends_on: start-gate
+    # depends_on: start-gate
 
   - label: ":test_tube: E2E tests - 1"
     key: e2e-1
