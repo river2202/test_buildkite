@@ -36,7 +36,6 @@ steps:
   - label: ":test_tube: E2E tests - 1"
     key: e2e-1
     command: echo "Running e2e - 1"
-    parallelism: 2
     depends_on: stage-deploy
 
   - label: ":test_tube: E2E tests - 2"
