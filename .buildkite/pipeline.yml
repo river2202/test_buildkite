@@ -33,11 +33,22 @@ steps:
     command: bash delay.sh && echo "Deployed to staging"
     depends_on: start-gate
 
-  - label: ":test_tube: E2E tests"
+  - label: ":test_tube: E2E tests - 1"
     key: e2e
-    command: echo "Running e2e test suite (shard $$BUILDKITE_PARALLEL_JOB)"
-    parallelism: 3
+    command: echo "Running e2e - 1"
+    parallelism: 2
     depends_on: stage-deploy
+
+  - label: ":test_tube: E2E tests - 2"
+    key: e2e
+    command: echo "Running e2e - 2"
+    depends_on: stage-deploy
+
+  - label: ":test_tube: E2E tests - 3"
+    key: e2e
+    command: echo "Running e2e - 3"
+    depends_on: stage-deploy
+
 
   - wait
 
