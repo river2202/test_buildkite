@@ -1,0 +1,54 @@
+# Concurrency Gate Demo
+#
+# This pipeline demonstrates the concurrency gate pattern:
+# - Multiple builds can queue up, but only ONE may be inside the gate at a time.
+# - Inside the gate, the deploy + e2e tests run to completion before the next
+#   build is allowed in — preventing parallel deployments to staging while still
+#   allowing e2e tests to run in parallel within a single build.
+#
+# Pattern:
+#   [unit tests]  →  [start-gate]  →  [deploy]  →  [e2e × 3]  →  [end-gate]
+#                        ↑                                              ↑
+#                   concurrency: 1  ←——— same concurrency_group ———→  concurrency: 1
+
+steps:
+  # ── Phase 1: run unit tests (unrestricted, all builds run in parallel) ────
+  - label: ":white_check_mark: Unit tests"
+    key: unit-tests
+    command: echo "Running unit tests"
+
+  # ── Gate entrance: only one build at a time may proceed past here ─────────
+  - label: ":traffic_light: Start of concurrency gate"
+    key: start-gate
+    command: echo "--> Entering concurrency gate"
+    depends_on: unit-tests
+    concurrency_group: staging-gate
+    concurrency: 1
+
+  - wait
+
+  # ── Phase 2 (inside the gate): deploy, then run e2e tests in parallel ─────
+  - label: ":rocket: Deploy to staging"
+    key: stage-deploy
+    command: bash delay.sh && echo "Deployed to staging"
+    depends_on: start-gate
+
+  - label: ":test_tube: E2E tests"
+    key: e2e
+    command: echo "Running e2e test suite (shard $$BUILDKITE_PARALLEL_JOB)"
+    parallelism: 3
+    depends_on: stage-deploy
+
+  - wait
+
+  # ── Gate exit: release the lock so the next queued build can enter ────────
+  - label: ":traffic_light: End of concurrency gate"
+    key: end-gate
+    command: echo "<-- Exiting concurrency gate"
+    concurrency_group: staging-gate
+    concurrency: 1
+
+  # ── Phase 3: post-gate steps run freely again ─────────────────────────────
+  - label: ":tada: Post-gate cleanup"
+    command: echo "Gate released — subsequent builds may now enter"
+    depends_on: end-gate
