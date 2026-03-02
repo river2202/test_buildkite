@@ -34,18 +34,18 @@ steps:
     depends_on: start-gate
 
   - label: ":test_tube: E2E tests - 1"
-    key: e2e
+    key: e2e-1
     command: echo "Running e2e - 1"
     parallelism: 2
     depends_on: stage-deploy
 
   - label: ":test_tube: E2E tests - 2"
-    key: e2e
+    key: e2e-2
     command: echo "Running e2e - 2"
     depends_on: stage-deploy
 
   - label: ":test_tube: E2E tests - 3"
-    key: e2e
+    key: e2e-3
     command: echo "Running e2e - 3"
     depends_on: stage-deploy
 
